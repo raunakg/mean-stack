@@ -22,7 +22,8 @@ export class PostsService {
         return {
           title: post.title,
           content: post.content,
-          id: post._id
+          id: post._id,
+          imagePath: post.imagePath
         }
       });
     } ))
@@ -39,13 +40,19 @@ export class PostsService {
 
   getPost(id: string){
     //return {...this.posts.find(p => p.id === id)};
-    return this.http.get<{_id: string, title: string, content: string }>("http://localhost:3000/api/posts/"+id);
+    return this.http.get<{_id: string, title: string, content: string, imagePath: string }>("http://localhost:3000/api/posts/"+id);
   }
 
   addPosts(post:Post){
-    this.http.post<({message: string, postId: string})>('http://localhost:3000/api/posts', post).subscribe((responseData) => {
-      const id = responseData.postId;
+    const postData = new FormData();
+    postData.append("title", post.title);
+    postData.append("content", post.content);
+    postData.append("image", post.image, post.title);
+
+    this.http.post<({message: string, post: Post})>('http://localhost:3000/api/posts', postData).subscribe((responseData) => {
+      const id = responseData.post.id;
       post.id = id;
+      post.imagePath = responseData.post.imagePath;
       this.posts.push(post);
       this.postsUpdated.next([...this.posts]);
       this.router.navigate(["/"]);
@@ -56,9 +63,20 @@ export class PostsService {
 
   updatePost(post:Post){
     //console.log(post);
-    this.http.put("http://localhost:3000/api/posts/"+post.id, post).subscribe(response => {
+    let postData: Post|FormData;
+    if(typeof(post.image) === 'object'){
+      postData = new FormData();
+      postData.append("id", post.id);
+      postData.append("title", post.title);
+      postData.append("content", post.content);
+      postData.append("image", post.image, post.title);
+    }else {
+      postData = {id: post.id, title: post.title, content: post.content, imagePath: post.image}
+    }
+    this.http.put("http://localhost:3000/api/posts/"+post.id, postData).subscribe(response => {
       const updatedPosts = [...this.posts];
       const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id);
+      post.imagePath= "response.imagePath";
       updatedPosts[oldPostIndex]=post;
       this.posts=updatedPosts;
       this.postsUpdated.next([...this.posts]);
