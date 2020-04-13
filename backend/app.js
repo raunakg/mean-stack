@@ -10,7 +10,7 @@ const userRoutes = require("./routes/user");
 
 const app = express();
 
-mongoose.connect("mongodb+srv://ron:QmHLHAKmVVynx6dj@cluster0-kiy3p.mongodb.net/node-angular?retryWrites=true&w=majority",{
+mongoose.connect("mongodb+srv://ron:"+process.env.MONGO_ATLAS_PW+"@cluster0-kiy3p.mongodb.net/node-angular?retryWrites=true&w=majority",{
     useNewUrlParser : true, useUnifiedTopology: true}).then(() => {
     console.log("Connected to database!");
 }).catch(() => {
